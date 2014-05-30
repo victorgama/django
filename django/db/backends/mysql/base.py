@@ -129,7 +129,7 @@ class CursorWrapper(object):
             # misclassified and Django would prefer the more logical place.
             if e.args[0] in self.codes_for_integrityerror:
                 six.reraise(utils.IntegrityError, utils.IntegrityError(*tuple(e.args)), sys.exc_info()[2])
-            if e.args[0] in self.codes_for_goneaway:
+            if e.args[0] in self.codes_for_goneaway and not self.db.in_atomic_block:
                 return self._reissue_query(self.execute, query, args)
             raise
 
