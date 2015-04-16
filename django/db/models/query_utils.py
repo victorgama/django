@@ -198,6 +198,13 @@ def deferred_class_factory(model, attrs):
     overrides["Meta"] = Meta
     overrides["__module__"] = model.__module__
     overrides["_deferred"] = True
+
+    # So we want a way to this deferred class to still trigger our signals.
+    # Let's just save which type it represents and the save() method then
+    # can use it instead of its real name, by checking if cls._meta.proxy
+    # and then using this next field
+    overrides["_real_model"] = model
+
     return type(str(name), (model,), overrides)
 
 # The above function is also used to unpickle model instances with deferred

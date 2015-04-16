@@ -559,6 +559,7 @@ class Model(six.with_metaclass(ModelBase)):
         using = using or router.db_for_write(self.__class__, instance=self)
         assert not (force_insert and (force_update or update_fields))
         assert update_fields is None or len(update_fields) > 0
+        exact_meta = self.__class__._meta
         cls = origin = self.__class__
         # Skip proxies, but keep the origin as the proxy model.
         if cls._meta.proxy:
@@ -578,6 +579,13 @@ class Model(six.with_metaclass(ModelBase)):
 
         # Signal that the save is complete
         if not meta.auto_created:
+            # So now we want to know one thing: is this a bloody proxy or not?
+            if exact_meta.proxy:
+                # Yup it is. Do not try to fool us, evil proxy. Do not.
+                # Although I'm not really sure if this can break anything,
+                # let's assume it don't, given it is declared in this very
+                # scope and in this very scope it shall be collected.
+                origin = self._real_model
             signals.post_save.send(sender=origin, instance=self, created=(not updated),
                                    update_fields=update_fields, raw=raw, using=using)
 
